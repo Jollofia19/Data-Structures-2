@@ -1,176 +1,103 @@
-// ============================================================
-// Task 4: Item Search and Management Module
-// Data Structure: Binary Search Tree (BST)
-// ============================================================
-
 #ifndef ITEMSEARCH_HPP
 #define ITEMSEARCH_HPP
 
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <sstream>
 using namespace std;
 
 // ============================================================
-// NODE STRUCTURE
+//  NODE STRUCTURE
+//  Each node stores one warehouse item
 // ============================================================
-struct ItemNode {
-    int itemID;
-    string itemName;
-    string itemLocation;
-    ItemNode* left;
-    ItemNode* right;
+struct ItemNode
+{
+    string itemID;    // Primary key  (e.g. "I001")
+    string name;      // Item name    (e.g. "Laptop")
+    string location;  // Shelf path   (e.g. "Zone A / Aisle 1 / Shelf A1")
 
-    ItemNode(int id, string name, string location) {
-        itemID = id;
-        itemName = name;
-        itemLocation = location;
-        left = nullptr;
-        right = nullptr;
-    }
+    ItemNode* left;   // Left child  (smaller ID)
+    ItemNode* right;  // Right child (larger ID)
+
+    ItemNode(const string& id,
+             const string& nm,
+             const string& loc);
 };
 
+
 // ============================================================
-// BINARY SEARCH TREE CLASS
+//  BINARY SEARCH TREE
+//  Manages the entire warehouse item catalogue
 // ============================================================
-class ItemBST {
+class ItemBST
+{
 private:
     ItemNode* root;
+    int       count;
 
-    ItemNode* insertHelper(ItemNode* node, int id, string name, string location) {
-        if (node == nullptr) {
-            return new ItemNode(id, name, location);
-        }
-        if (id < node->itemID) {
-            node->left = insertHelper(node->left, id, name, location);
-        } else if (id > node->itemID) {
-            node->right = insertHelper(node->right, id, name, location);
-        } else {
-            cout << "[!] Item with ID " << id << " already exists.\n";
-        }
-        return node;
-    }
+    // Private recursive helpers
+    ItemNode* insertNode(ItemNode* node,
+                         const string& id,
+                         const string& name,
+                         const string& loc);
 
-    ItemNode* searchByIDHelper(ItemNode* node, int id) {
-        if (node == nullptr || node->itemID == id) {
-            return node;
-        }
-        if (id < node->itemID) {
-            return searchByIDHelper(node->left, id);
-        } else {
-            return searchByIDHelper(node->right, id);
-        }
-    }
+    ItemNode* searchByID(ItemNode* node, const string& id) const;
 
-    void searchByNameHelper(ItemNode* node, string name) {
-        if (node == nullptr) return;
-        searchByNameHelper(node->left, name);
-        if (node->itemName == name) {
-            cout << "  Found -> ID: " << node->itemID
-                 << " | Name: " << node->itemName
-                 << " | Location: " << node->itemLocation << "\n";
-        }
-        searchByNameHelper(node->right, name);
-    }
+    void inorderDisplay(ItemNode* node) const;
 
-    void inOrderHelper(ItemNode* node) {
-        if (node == nullptr) return;
-        inOrderHelper(node->left);
-        cout << "  ID: " << node->itemID
-             << " | Name: " << node->itemName
-             << " | Location: " << node->itemLocation << "\n";
-        inOrderHelper(node->right);
-    }
+    void searchByName(ItemNode* node, const string& keyword) const;
 
-    ItemNode* findMin(ItemNode* node) {
-        while (node->left != nullptr) {
-            node = node->left;
-        }
-        return node;
-    }
+    ItemNode* findMin(ItemNode* node) const;
 
-    ItemNode* deleteHelper(ItemNode* node, int id) {
-        if (node == nullptr) {
-            cout << "[!] Item ID " << id << " not found.\n";
-            return nullptr;
-        }
-        if (id < node->itemID) {
-            node->left = deleteHelper(node->left, id);
-        } else if (id > node->itemID) {
-            node->right = deleteHelper(node->right, id);
-        } else {
-            if (node->left == nullptr) {
-                ItemNode* temp = node->right;
-                delete node;
-                return temp;
-            } else if (node->right == nullptr) {
-                ItemNode* temp = node->left;
-                delete node;
-                return temp;
-            } else {
-                ItemNode* successor = findMin(node->right);
-                node->itemID = successor->itemID;
-                node->itemName = successor->itemName;
-                node->itemLocation = successor->itemLocation;
-                node->right = deleteHelper(node->right, successor->itemID);
-            }
-        }
-        return node;
-    }
+    ItemNode* deleteNode(ItemNode* node,
+                         const string& id,
+                         bool& deleted);
+
+    void destroyTree(ItemNode* node);
+
+    void saveToFile(ItemNode* node, ofstream& outFile) const;
+
+    void printBorder() const;
+
+    string toLower(const string& str) const;
 
 public:
-    ItemBST() {
-        root = nullptr;
-    }
+    ItemBST();
+    ~ItemBST();
 
-    void insertItem(int id, string name, string location) {
-        root = insertHelper(root, id, name, location);
-        cout << "[+] Item inserted: ID=" << id
-             << ", Name=" << name
-             << ", Location=" << location << "\n";
-    }
+    // Core BST operations
+    void insertItem(const string& id,
+                    const string& name,
+                    const string& loc);
 
-    void searchByID(int id) {
-        ItemNode* result = searchByIDHelper(root, id);
-        if (result != nullptr) {
-            cout << "[Search Result]\n";
-            cout << "  ID: " << result->itemID
-                 << " | Name: " << result->itemName
-                 << " | Location: " << result->itemLocation << "\n";
-        } else {
-            cout << "[!] Item with ID " << id << " not found.\n";
-        }
-    }
+    void searchItemByID(const string& id) const;
 
-    void searchByName(string name) {
-        cout << "[Search by Name: " << name << "]\n";
-        searchByNameHelper(root, name);
-    }
+    void searchItemByName(const string& keyword) const;
 
-    void updateItem(int id, string newLocation) {
-        ItemNode* result = searchByIDHelper(root, id);
-        if (result != nullptr) {
-            result->itemLocation = newLocation;
-            cout << "[~] Item ID " << id
-                 << " location updated to: " << newLocation << "\n";
-        } else {
-            cout << "[!] Item with ID " << id << " not found.\n";
-        }
-    }
+    void updateItem(const string& id,
+                    const string& newName,
+                    const string& newLoc);
 
-    void deleteItem(int id) {
-        root = deleteHelper(root, id);
-        cout << "[-] Item ID " << id << " deleted.\n";
-    }
+    void deleteItem(const string& id);
 
-    void displayAll() {
-        if (root == nullptr) {
-            cout << "[!] No items in the system.\n";
-            return;
-        }
-        cout << "\n===== All Items (Sorted by ID) =====\n";
-        inOrderHelper(root);
-        cout << "=====================================\n";
-    }
+    void displayAllItems() const;
+
+    string getItemLocation(const string& id) const;
+
+    string getItemName(const string& id) const;
+
+    bool itemExists(const string& id) const;
+
+    int getCount() const;
+
+    // CSV file operations
+    void loadFromCSV(const string& filename);
+
+    void saveToCSV(const string& filename) const;
+
+    // Interactive menu
+    void runMenu();
 };
 
-#endif
+#endif // ITEMSEARCH_HPP
