@@ -8,6 +8,7 @@ ItemNode::ItemNode(const string& id,
                    const string& loc)
     : itemID(id), name(nm), location(loc), left(nullptr), right(nullptr)
 {
+    // All fields set through member-initialiser list
 }
 
 
@@ -18,6 +19,7 @@ ItemBST::ItemBST() : root(nullptr), count(0) {}
 
 ItemBST::~ItemBST()
 {
+    // Free every node to prevent memory leaks
     destroyTree(root);
 }
 
@@ -26,6 +28,9 @@ ItemBST::~ItemBST()
 //  Private Helpers
 // ============================================================
 
+// ------------------------------------------------------------
+//  destroyTree – post-order deletion of all nodes
+// ------------------------------------------------------------
 void ItemBST::destroyTree(ItemNode* node)
 {
     if (node == nullptr) return;
@@ -34,72 +39,109 @@ void ItemBST::destroyTree(ItemNode* node)
     delete node;
 }
 
+
+// ------------------------------------------------------------
+//  toLower – returns a lowercase copy of a string
+// ------------------------------------------------------------
 string ItemBST::toLower(const string& str) const
 {
     string result = str;
     for (int i = 0; i < (int)result.size(); i++)
     {
+        // Convert uppercase ASCII letters only
         if (result[i] >= 'A' && result[i] <= 'Z')
             result[i] = result[i] + 32;
     }
     return result;
 }
 
+
+// ------------------------------------------------------------
+//  printBorder – prints a table separator line
+// ------------------------------------------------------------
 void ItemBST::printBorder() const
 {
     cout << "+----------+---------------------------+------------------------------+" << endl;
 }
 
+
+// ------------------------------------------------------------
+//  insertNode – recursive BST insertion
+//  BST property: left child ID < parent ID < right child ID
+// ------------------------------------------------------------
 ItemNode* ItemBST::insertNode(ItemNode* node,
                                const string& id,
                                const string& name,
                                const string& loc)
 {
+    // Base case: empty position found – create new node here
     if (node == nullptr)
     {
         count++;
         return new ItemNode(id, name, loc);
     }
 
+    // Navigate left if new ID is smaller
     if (id < node->itemID)
         node->left = insertNode(node->left, id, name, loc);
+
+    // Navigate right if new ID is larger
     else if (id > node->itemID)
         node->right = insertNode(node->right, id, name, loc);
+
+    // Equal IDs – duplicate detected
     else
         cout << "  [WARNING] Item ID '" << id << "' already exists. Duplicate skipped.\n";
 
     return node;
 }
 
+
+// ------------------------------------------------------------
+//  searchByID – recursive search for exact Item ID
+// ------------------------------------------------------------
 ItemNode* ItemBST::searchByID(ItemNode* node, const string& id) const
 {
-    if (node == nullptr)    return nullptr;
-    if (id == node->itemID) return node;
-    if (id < node->itemID)  return searchByID(node->left, id);
-    return searchByID(node->right, id);
+    if (node == nullptr)    return nullptr;  // Not found
+    if (id == node->itemID) return node;     // Found
+    if (id < node->itemID)  return searchByID(node->left,  id);
+    return                         searchByID(node->right, id);
 }
 
+
+// ------------------------------------------------------------
+//  inorderDisplay – prints items in sorted order (by ID)
+// ------------------------------------------------------------
 void ItemBST::inorderDisplay(ItemNode* node) const
 {
     if (node == nullptr) return;
 
+    // Visit left subtree first (smaller IDs)
     inorderDisplay(node->left);
 
+    // Print current node as a formatted table row
     string idField   = node->itemID;   idField.resize(8,  ' ');
     string nameField = node->name;     nameField.resize(25, ' ');
     string locField  = node->location; locField.resize(28, ' ');
 
     cout << "| " << idField << " | " << nameField << " | " << locField << " |\n";
 
+    // Visit right subtree last (larger IDs)
     inorderDisplay(node->right);
 }
 
+
+// ------------------------------------------------------------
+//  searchByName – full-tree scan for keyword in item name
+//  Case-insensitive partial match
+// ------------------------------------------------------------
 void ItemBST::searchByName(ItemNode* node, const string& keyword) const
 {
     if (node == nullptr) return;
 
     searchByName(node->left, keyword);
 
+    // Check if item name contains the keyword
     if (toLower(node->name).find(keyword) != string::npos)
     {
         string idField   = node->itemID;   idField.resize(8,  ' ');
@@ -112,6 +154,11 @@ void ItemBST::searchByName(ItemNode* node, const string& keyword) const
     searchByName(node->right, keyword);
 }
 
+
+// ------------------------------------------------------------
+//  findMin – returns leftmost node in a subtree
+//  Used during deletion to find in-order successor
+// ------------------------------------------------------------
 ItemNode* ItemBST::findMin(ItemNode* node) const
 {
     while (node->left != nullptr)
@@ -119,6 +166,13 @@ ItemNode* ItemBST::findMin(ItemNode* node) const
     return node;
 }
 
+
+// ------------------------------------------------------------
+//  deleteNode – recursive BST deletion
+//  Case 1: No children       → simply delete
+//  Case 2: One child         → replace with child
+//  Case 3: Two children      → replace with in-order successor
+// ------------------------------------------------------------
 ItemNode* ItemBST::deleteNode(ItemNode* node,
                                const string& id,
                                bool& deleted)
@@ -135,9 +189,11 @@ ItemNode* ItemBST::deleteNode(ItemNode* node,
         node->right = deleteNode(node->right, id, deleted);
     else
     {
+        // Node found
         deleted = true;
         count--;
 
+        // Case 1 & 2: at most one child
         if (node->left == nullptr)
         {
             ItemNode* temp = node->right;
@@ -151,11 +207,14 @@ ItemNode* ItemBST::deleteNode(ItemNode* node,
             return temp;
         }
 
+        // Case 3: two children
+        // Replace with in-order successor (smallest in right subtree)
         ItemNode* successor = findMin(node->right);
         node->itemID   = successor->itemID;
         node->name     = successor->name;
         node->location = successor->location;
 
+        // Delete the successor from right subtree
         count++;
         node->right = deleteNode(node->right, successor->itemID, deleted);
     }
@@ -163,11 +222,17 @@ ItemNode* ItemBST::deleteNode(ItemNode* node,
     return node;
 }
 
+
+// ------------------------------------------------------------
+//  saveToFile – in-order write to open CSV file stream
+// ------------------------------------------------------------
 void ItemBST::saveToFile(ItemNode* node, ofstream& outFile) const
 {
     if (node == nullptr) return;
     saveToFile(node->left, outFile);
-    outFile << node->itemID << "," << node->name << "," << node->location << "\n";
+    outFile << node->itemID << ","
+            << node->name   << ","
+            << node->location << "\n";
     saveToFile(node->right, outFile);
 }
 
@@ -303,11 +368,12 @@ void ItemBST::loadFromCSV(const string& filename)
     }
 
     string line;
-    int loaded     = 0;
+    int  loaded    = 0;
     bool firstLine = true;
 
     while (getline(file, line))
     {
+        // Skip header row
         if (firstLine) { firstLine = false; continue; }
         if (line.empty()) continue;
 
@@ -338,7 +404,10 @@ void ItemBST::saveToCSV(const string& filename) const
         return;
     }
 
+    // Write header
     file << "Item ID,Name,Location\n";
+
+    // Write all records in sorted order
     saveToFile(root, file);
     file.close();
 
@@ -351,6 +420,7 @@ void ItemBST::saveToCSV(const string& filename) const
 // ============================================================
 void ItemBST::runMenu()
 {
+    // Load existing data from CSV on startup
     loadFromCSV("Items.csv");
 
     int choice = 0;
@@ -401,8 +471,9 @@ void ItemBST::runMenu()
             getline(cin, id);
             cout << "  Enter Item Name     : ";
             getline(cin, name);
-            cout << "  Enter Item Location : ";
-            cout << "  (Format: Zone A / Aisle 1 / Shelf A1)\n  > ";
+            cout << "  Enter Item Location\n";
+            cout << "  (Format: Zone A / Aisle 1 / Shelf A1)\n";
+            cout << "  > ";
             getline(cin, loc);
 
             if (id.empty() || name.empty() || loc.empty())
@@ -426,8 +497,9 @@ void ItemBST::runMenu()
 
             cout << "  Enter new Name     (press Enter to keep current): ";
             getline(cin, name);
-            cout << "  Enter new Location (press Enter to keep current): ";
-            cout << "  (Format: Zone A / Aisle 1 / Shelf A1)\n  > ";
+            cout << "  Enter new Location (press Enter to keep current)\n";
+            cout << "  (Format: Zone A / Aisle 1 / Shelf A1)\n";
+            cout << "  > ";
             getline(cin, loc);
 
             updateItem(id, name, loc);
