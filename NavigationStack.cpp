@@ -71,19 +71,20 @@ void NavigationStack::recordMovement() {
 }
 
 // Recursive function to display path from oldest movement to newest movement.
-// This shows the actual forward path in the correct order.
-void NavigationStack::displayForwardRecursive(MovementNode* current) {
+// The bool variable prevents extra arrows at the start or end.
+void NavigationStack::displayForwardRecursive(MovementNode* current, bool& firstPrinted) {
     if (current == nullptr) {
         return;
     }
 
-    displayForwardRecursive(current->next);
+    displayForwardRecursive(current->next, firstPrinted);
 
-    cout << current->movement;
-
-    if (current != top) {
+    if (!firstPrinted) {
         cout << " -> ";
     }
+
+    cout << current->movement;
+    firstPrinted = false;
 }
 
 void NavigationStack::displayForwardPath() {
@@ -94,7 +95,10 @@ void NavigationStack::displayForwardPath() {
     }
 
     cout << "\nForward Movement Path:" << endl;
-    displayForwardRecursive(top);
+
+    bool firstPrinted = true;
+    displayForwardRecursive(top, firstPrinted);
+
     cout << endl;
 
     addLog("Forward movement path displayed.");

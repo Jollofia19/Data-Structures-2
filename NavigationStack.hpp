@@ -25,7 +25,7 @@ private:
     LogNode* logHead;
     LogNode* logTail;
 
-    void displayForwardRecursive(MovementNode* current);
+    void displayForwardRecursive(MovementNode* current, bool& firstPrinted);
     void addLog(string message);
     string getReverseMovement(string movement);
 
