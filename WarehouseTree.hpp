@@ -5,7 +5,7 @@
 #include <string>
 using namespace std;
 
-// Tree node for warehouse sections
+// Tree node for warehouse sections such as zones, aisles, and shelves
 struct WarehouseNode {
     string name;
     string type;
@@ -22,9 +22,10 @@ private:
     WarehouseNode* searchNode(WarehouseNode* current, string name);
 
     void displayTree(WarehouseNode* current, int level);
-    bool printPath(WarehouseNode* current, string targetName);
     void traversePreOrder(WarehouseNode* current);
     void deleteTree(WarehouseNode* current);
+
+    bool findPathToNode(WarehouseNode* current, string targetName, string path[], int& pathLength);
 
 public:
     WarehouseTree();
@@ -35,6 +36,7 @@ public:
     void displayWarehouseLayout();
     void searchLocation(string locationName);
     void showPathToLocation(string locationName);
+    void showPathBetweenLocations(string startLocation, string endLocation);
     void traverseWarehouse();
 
     ~WarehouseTree();

@@ -74,7 +74,7 @@ void WarehouseTree::buildDefaultLayout() {
 
     addSection("Zone C", "Zone C / Aisle 1", "Aisle");
 
-    // Shelves using agreed group format
+    // Shelves using agreed location format
     addSection("Zone A / Aisle 1", "Zone A / Aisle 1 / Shelf A1", "Shelf");
     addSection("Zone A / Aisle 1", "Zone A / Aisle 1 / Shelf A2", "Shelf");
     addSection("Zone A / Aisle 2", "Zone A / Aisle 2 / Shelf A3", "Shelf");
@@ -120,22 +120,25 @@ void WarehouseTree::searchLocation(string locationName) {
     }
 }
 
-bool WarehouseTree::printPath(WarehouseNode* current, string targetName) {
+bool WarehouseTree::findPathToNode(WarehouseNode* current, string targetName, string path[], int& pathLength) {
     if (current == nullptr) {
         return false;
     }
 
+    path[pathLength] = current->name;
+    pathLength++;
+
     if (current->name == targetName) {
-        cout << current->name;
         return true;
     }
 
-    if (printPath(current->firstChild, targetName)) {
-        cout << " <- " << current->name;
+    if (findPathToNode(current->firstChild, targetName, path, pathLength)) {
         return true;
     }
 
-    if (printPath(current->nextSibling, targetName)) {
+    pathLength--;
+
+    if (findPathToNode(current->nextSibling, targetName, path, pathLength)) {
         return true;
     }
 
@@ -143,12 +146,72 @@ bool WarehouseTree::printPath(WarehouseNode* current, string targetName) {
 }
 
 void WarehouseTree::showPathToLocation(string locationName) {
+    string path[100];
+    int pathLength = 0;
+
+    bool found = findPathToNode(root, locationName, path, pathLength);
+
     cout << "\nPath to selected location:" << endl;
 
-    bool found = printPath(root, locationName);
-
     if (!found) {
-        cout << "Location not found.";
+        cout << "Location not found: " << locationName << endl;
+        return;
+    }
+
+    for (int i = 0; i < pathLength; i++) {
+        cout << path[i];
+
+        if (i < pathLength - 1) {
+            cout << " -> ";
+        }
+    }
+
+    cout << endl;
+}
+
+void WarehouseTree::showPathBetweenLocations(string startLocation, string endLocation) {
+    string startPath[100];
+    string endPath[100];
+
+    int startLength = 0;
+    int endLength = 0;
+
+    bool startFound = findPathToNode(root, startLocation, startPath, startLength);
+    bool endFound = findPathToNode(root, endLocation, endPath, endLength);
+
+    cout << "\nPath between selected locations:" << endl;
+
+    if (!startFound) {
+        cout << "Start location not found: " << startLocation << endl;
+        return;
+    }
+
+    if (!endFound) {
+        cout << "End location not found: " << endLocation << endl;
+        return;
+    }
+
+    int commonIndex = 0;
+
+    while (commonIndex < startLength &&
+           commonIndex < endLength &&
+           startPath[commonIndex] == endPath[commonIndex]) {
+        commonIndex++;
+    }
+
+    int lowestCommonIndex = commonIndex - 1;
+
+    // Move from start location back to the common parent
+    for (int i = startLength - 1; i > lowestCommonIndex; i--) {
+        cout << startPath[i] << " -> ";
+    }
+
+    // Print the common parent
+    cout << startPath[lowestCommonIndex];
+
+    // Move from the common parent to the end location
+    for (int i = lowestCommonIndex + 1; i < endLength; i++) {
+        cout << " -> " << endPath[i];
     }
 
     cout << endl;

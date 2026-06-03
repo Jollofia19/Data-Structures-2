@@ -234,9 +234,7 @@ void runOrderManagement() {
     } while (choice != 6);
 }
  
-int main () {
-    runOrderManagement();
-}
+
 
 
 

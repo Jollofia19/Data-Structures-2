@@ -241,7 +241,7 @@ void loadRobotsFromCSV(string robots)
 
 
 
-int main()
+void runRobotAssignment()
 {
     CircularQueue q;
 
@@ -301,5 +301,5 @@ int main()
 
     } while (choice != 5);
 
-    return 0;
+   
 }

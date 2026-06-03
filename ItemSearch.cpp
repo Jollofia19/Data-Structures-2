@@ -491,10 +491,3 @@ void ItemBST::runMenu()
 }
 
 
-//  MAIN
-int main()
-{
-    ItemBST warehouse;
-    warehouse.runMenu();
-    return 0;
-}
