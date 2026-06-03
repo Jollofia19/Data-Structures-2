@@ -21,6 +21,8 @@ private:
     WarehouseNode* createNode(string name, string type);
     WarehouseNode* searchNode(WarehouseNode* current, string name);
 
+    void addDefaultSection(string parentName, string sectionName, string sectionType);
+
     void displayTree(WarehouseNode* current, int level);
     void traversePreOrder(WarehouseNode* current);
     void deleteTree(WarehouseNode* current);

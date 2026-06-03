@@ -59,30 +59,55 @@ void WarehouseTree::addSection(string parentName, string sectionName, string sec
     cout << sectionType << " added: " << sectionName << " under " << parentName << endl;
 }
 
+// Private helper used only for default layout.
+// It adds sections silently without printing many messages at program startup.
+void WarehouseTree::addDefaultSection(string parentName, string sectionName, string sectionType) {
+    WarehouseNode* parent = searchNode(root, parentName);
+
+    if (parent == nullptr) {
+        return;
+    }
+
+    WarehouseNode* newSection = createNode(sectionName, sectionType);
+
+    if (parent->firstChild == nullptr) {
+        parent->firstChild = newSection;
+    }
+    else {
+        WarehouseNode* current = parent->firstChild;
+
+        while (current->nextSibling != nullptr) {
+            current = current->nextSibling;
+        }
+
+        current->nextSibling = newSection;
+    }
+}
+
 void WarehouseTree::buildDefaultLayout() {
     // Zones
-    addSection("Warehouse Entrance", "Zone A", "Zone");
-    addSection("Warehouse Entrance", "Zone B", "Zone");
-    addSection("Warehouse Entrance", "Zone C", "Zone");
+    addDefaultSection("Warehouse Entrance", "Zone A", "Zone");
+    addDefaultSection("Warehouse Entrance", "Zone B", "Zone");
+    addDefaultSection("Warehouse Entrance", "Zone C", "Zone");
 
     // Aisles using full format to avoid duplicate names
-    addSection("Zone A", "Zone A / Aisle 1", "Aisle");
-    addSection("Zone A", "Zone A / Aisle 2", "Aisle");
+    addDefaultSection("Zone A", "Zone A / Aisle 1", "Aisle");
+    addDefaultSection("Zone A", "Zone A / Aisle 2", "Aisle");
 
-    addSection("Zone B", "Zone B / Aisle 1", "Aisle");
-    addSection("Zone B", "Zone B / Aisle 2", "Aisle");
+    addDefaultSection("Zone B", "Zone B / Aisle 1", "Aisle");
+    addDefaultSection("Zone B", "Zone B / Aisle 2", "Aisle");
 
-    addSection("Zone C", "Zone C / Aisle 1", "Aisle");
+    addDefaultSection("Zone C", "Zone C / Aisle 1", "Aisle");
 
     // Shelves using agreed location format
-    addSection("Zone A / Aisle 1", "Zone A / Aisle 1 / Shelf A1", "Shelf");
-    addSection("Zone A / Aisle 1", "Zone A / Aisle 1 / Shelf A2", "Shelf");
-    addSection("Zone A / Aisle 2", "Zone A / Aisle 2 / Shelf A3", "Shelf");
+    addDefaultSection("Zone A / Aisle 1", "Zone A / Aisle 1 / Shelf A1", "Shelf");
+    addDefaultSection("Zone A / Aisle 1", "Zone A / Aisle 1 / Shelf A2", "Shelf");
+    addDefaultSection("Zone A / Aisle 2", "Zone A / Aisle 2 / Shelf A3", "Shelf");
 
-    addSection("Zone B / Aisle 1", "Zone B / Aisle 1 / Shelf B1", "Shelf");
-    addSection("Zone B / Aisle 2", "Zone B / Aisle 2 / Shelf B2", "Shelf");
+    addDefaultSection("Zone B / Aisle 1", "Zone B / Aisle 1 / Shelf B1", "Shelf");
+    addDefaultSection("Zone B / Aisle 2", "Zone B / Aisle 2 / Shelf B2", "Shelf");
 
-    addSection("Zone C / Aisle 1", "Zone C / Aisle 1 / Shelf C1", "Shelf");
+    addDefaultSection("Zone C / Aisle 1", "Zone C / Aisle 1 / Shelf C1", "Shelf");
 }
 
 void WarehouseTree::displayTree(WarehouseNode* current, int level) {
@@ -201,15 +226,12 @@ void WarehouseTree::showPathBetweenLocations(string startLocation, string endLoc
 
     int lowestCommonIndex = commonIndex - 1;
 
-    // Move from start location back to the common parent
     for (int i = startLength - 1; i > lowestCommonIndex; i--) {
         cout << startPath[i] << " -> ";
     }
 
-    // Print the common parent
     cout << startPath[lowestCommonIndex];
 
-    // Move from the common parent to the end location
     for (int i = lowestCommonIndex + 1; i < endLength; i++) {
         cout << " -> " << endPath[i];
     }
