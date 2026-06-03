@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <fstream>
 using namespace std;
 
 class Robot
@@ -200,6 +201,39 @@ public:
         cout << "Robot not found." << endl;
     }
 }
+
+void loadRobotsFromCSV(string robots)
+{
+    ifstream file(robots);
+
+    if (!file)
+    {
+        cout << "Cannot open robot file.\n";
+        return;
+    }
+
+    string line;
+    getline(file, line); // skip header
+
+    while (getline(file, line))
+    {
+        int comma = line.find(',');
+
+        int id = stoi(line.substr(0, comma));
+        string status = line.substr(comma + 1);
+
+        Robot r(id);
+        r.setStatus(status);
+
+        enqueue(r);
+    }
+
+    file.close();
+
+    cout << "Robots loaded successfully.\n";
+}
+
+
 };
 
 
@@ -212,9 +246,8 @@ int main()
     CircularQueue q;
 
     // Initial robots
-    q.enqueue(Robot(101));
-    q.enqueue(Robot(102));
-    q.enqueue(Robot(103));
+    q.loadRobotsFromCSV("robots.csv");
+    
 
     int choice;
     string orderID;
@@ -239,7 +272,7 @@ int main()
             break;
 
         case 2:
-            cout << "Enter Order ID: ";
+            cout << "Enter Order ID to assign: ";
             cin >> orderID;
             q.assignTask(orderID);
             break;
