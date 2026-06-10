@@ -8,7 +8,7 @@ NavigationStack::NavigationStack() {
     addLog("Navigation module started.");
 }
 
-bool NavigationStack::isEmpty() {
+bool NavigationStack::isEmpty() { ///checks is the stack is empty 
     return top == nullptr;
 }
 
@@ -28,12 +28,15 @@ void NavigationStack::addLog(string message) {
 }
 
 void NavigationStack::pushMovement(string movement) {
+    
     MovementNode* newNode = new MovementNode;
-
+    
+    
     newNode->movement = movement;
     newNode->next = top;
     top = newNode;
 
+    // Display and log the recorded movement
     cout << "Movement recorded: " << movement << endl;
     addLog("Movement recorded: " + movement);
 }
@@ -47,7 +50,7 @@ string NavigationStack::popMovement() {
     string movement = temp->movement;
 
     top = top->next;
-    delete temp;
+    delete temp; // the old top node is deleted 
 
     return movement;
 }
@@ -159,7 +162,7 @@ void NavigationStack::handleObstacle() {
         return;
     }
 
-    string wrongMove = popMovement();
+    string wrongMove = popMovement(); // this represents back tracking 
 
     cout << "\nObstacle detected!" << endl;
     cout << "Last movement removed from path: " << wrongMove << endl;
